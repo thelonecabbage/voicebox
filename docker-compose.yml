@@ -3,7 +3,8 @@ services:
   build:
     context: .
     pull: true
-  no_cache: true    container_name: voicebox
+    no_cache: true    
+  container_name: voicebox
     restart: unless-stopped
 
     ports:
