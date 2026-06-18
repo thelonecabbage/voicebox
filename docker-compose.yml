@@ -1,9 +1,6 @@
 services:
   voicebox:
-    build:
-      context: .
-      pull: true
-      no_cache: true    
+    build: .
     container_name: voicebox
     restart: unless-stopped
 
