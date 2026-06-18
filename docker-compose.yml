@@ -1,6 +1,7 @@
 services:
   voicebox:
-    build: .
+    # build: .
+    image: voicebox-local:latest
     container_name: voicebox
     restart: unless-stopped
 
