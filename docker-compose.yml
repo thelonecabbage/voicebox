@@ -1,12 +1,14 @@
 services:
   voicebox:
-    build: .
-    container_name: voicebox
+  build:
+    context: .
+    pull: true
+  no_cache: true    container_name: voicebox
     restart: unless-stopped
 
     ports:
       # Bind to localhost only for security
-      - "127.0.0.1:17493:17493"
+      - "0.0.0.0:17493:17493"
 
     volumes:
       # Bind-mount for generated audio (customize the host path as needed)
