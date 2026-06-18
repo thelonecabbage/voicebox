@@ -26,11 +26,17 @@ FROM python:3.11-slim-bookworm AS backend-builder
 
 WORKDIR /build
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    git \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
-
+RUN set -eux; \
+    printf 'Acquire::Retries "5";\nAcquire::ForceIPv4 "true";\n' \
+        > /etc/apt/apt.conf.d/80-network-workarounds; \
+    rm -rf /var/lib/apt/lists/*; \
+    apt-get update; \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        ca-certificates \
+        git \
+        build-essential; \
+    rm -rf /var/lib/apt/lists/*
+    
 RUN pip install --no-cache-dir --upgrade pip
 
 COPY backend/requirements.txt .
@@ -42,7 +48,7 @@ RUN pip install --no-cache-dir --prefix=/install \
 
 
 # === Stage 3: Runtime ===
-FROM python:3.11-slim
+FROM python:3.11-slim-bookworm
 
 # Create non-root user for security
 RUN groupadd -r voicebox && \
@@ -51,11 +57,17 @@ RUN groupadd -r voicebox && \
 WORKDIR /app
 
 # Install only runtime system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ffmpeg \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-
+RUN set -eux; \
+    printf 'Acquire::Retries "5";\nAcquire::ForceIPv4 "true";\n' \
+        > /etc/apt/apt.conf.d/80-network-workarounds; \
+    rm -rf /var/lib/apt/lists/*; \
+    apt-get update; \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        ca-certificates \
+        ffmpeg \
+        curl; \
+    rm -rf /var/lib/apt/lists/*
+    
 # Copy installed Python packages from builder stage
 COPY --from=backend-builder /install /usr/local
 
