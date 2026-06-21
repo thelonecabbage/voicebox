@@ -40,10 +40,20 @@ RUN set -eux; \
 RUN pip install --no-cache-dir --upgrade pip
 
 COPY backend/requirements.txt .
-RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
+
+# Keep the Docker image CPU-only. Without these constraints pip resolves the
+# newest PyPI torch build, which pulls the full CUDA dependency stack.
+RUN printf '%s\n' \
+    'torch==2.7.1+cpu' \
+    'torchaudio==2.7.1+cpu' \
+    > docker-constraints.txt
+RUN pip install --no-cache-dir --prefix=/install \
+    --extra-index-url https://download.pytorch.org/whl/cpu \
+    -c docker-constraints.txt \
+    -r requirements.txt
 RUN pip install --no-cache-dir --prefix=/install --no-deps chatterbox-tts
 RUN pip install --no-cache-dir --prefix=/install --no-deps hume-tada
-RUN pip install --no-cache-dir --prefix=/install \
+RUN pip install --no-cache-dir --prefix=/install --no-deps \
     git+https://github.com/QwenLM/Qwen3-TTS.git
 
 
@@ -65,8 +75,15 @@ RUN set -eux; \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         ca-certificates \
         ffmpeg \
-        curl; \
+        curl \
+        libatomic1; \
     rm -rf /var/lib/apt/lists/*
+
+ARG VOICEBOX_UID=1000
+ARG VOICEBOX_GID=1000
+RUN groupmod --gid "${VOICEBOX_GID}" voicebox && \
+    usermod --uid "${VOICEBOX_UID}" --gid voicebox voicebox && \
+    chown -R voicebox:voicebox /home/voicebox
     
 # Copy installed Python packages from builder stage
 COPY --from=backend-builder /install /usr/local
@@ -81,8 +98,8 @@ COPY --from=frontend --chown=voicebox:voicebox /build/web/dist /app/frontend/
 RUN mkdir -p /app/data/generations /app/data/profiles /app/data/cache \
     && chown -R voicebox:voicebox /app/data
 
-# Switch to non-root user
-USER voicebox
+COPY docker-entrypoint.sh /usr/local/bin/voicebox-entrypoint
+RUN chmod +x /usr/local/bin/voicebox-entrypoint
 
 # Expose the API port
 EXPOSE 17493
@@ -92,4 +109,5 @@ HEALTHCHECK --interval=30s --timeout=10s --retries=3 --start-period=60s \
     CMD curl -f http://localhost:17493/health || exit 1
 
 # Start the FastAPI server
+ENTRYPOINT ["voicebox-entrypoint"]
 CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "17493"]
