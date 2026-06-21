@@ -1,6 +1,6 @@
 # ============================================================
-# Voicebox — Local TTS Server with Web UI (CPU)
-# 3-stage build: Frontend → Python deps → Runtime
+# Voicebox — Local TTS Server with Web UI (CUDA)
+# 3-stage build: Frontend -> Python deps -> Runtime
 # ============================================================
 
 # === Stage 1: Build frontend ===
@@ -41,14 +41,13 @@ RUN pip install --no-cache-dir --upgrade pip
 
 COPY backend/requirements.txt .
 
-# Keep the Docker image CPU-only. Without these constraints pip resolves the
-# newest PyPI torch build, which pulls the full CUDA dependency stack.
+# Install CUDA-enabled PyTorch wheels so the container can use NVIDIA GPUs.
 RUN printf '%s\n' \
-    'torch==2.7.1+cpu' \
-    'torchaudio==2.7.1+cpu' \
+    'torch==2.7.1+cu126' \
+    'torchaudio==2.7.1+cu126' \
     > docker-constraints.txt
 RUN pip install --no-cache-dir --prefix=/install \
-    --extra-index-url https://download.pytorch.org/whl/cpu \
+    --extra-index-url https://download.pytorch.org/whl/cu126 \
     -c docker-constraints.txt \
     -r requirements.txt
 RUN pip install --no-cache-dir --prefix=/install --no-deps chatterbox-tts
