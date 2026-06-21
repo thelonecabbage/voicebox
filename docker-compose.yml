@@ -1,6 +1,8 @@
 services:
   voicebox:
-    # build: .
+    # Build from the checked-out repository so Git-backed Portainer stacks do
+    # not keep reusing an older voicebox-local image after a repository update.
+    build: .
     image: voicebox-local:latest
     container_name: voicebox
     restart: unless-stopped
