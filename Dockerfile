@@ -135,7 +135,7 @@ HEALTHCHECK --interval=30s --timeout=10s --retries=3 --start-period=60s \
 # Normalize CRLF (a Windows checkout otherwise leaves the shebang as
 # `#!/bin/sh\r`, which Linux can't resolve — reported as a misleading
 # "no such file or directory" even though the file exists).
-COPY --chmod=755 scripts/rocm-entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN sed -i 's/\r$//' /usr/local/bin/entrypoint.sh
+COPY scripts/rocm-entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN sed -i 's/\r$//' /usr/local/bin/entrypoint.sh && chmod 755 /usr/local/bin/entrypoint.sh
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "17493"]
