@@ -12,6 +12,7 @@ and a model config registry that eliminates per-engine dispatch maps.
 # HF_HUB_OFFLINE=1 and on network failures.
 from ..utils import hf_offline_patch  # noqa: F401
 
+import os
 import threading
 from dataclasses import dataclass, field
 from typing import Protocol, Optional, Tuple, List
@@ -475,7 +476,7 @@ def _get_non_qwen_tts_configs() -> list[ModelConfig]:
 
 def _get_whisper_configs() -> list[ModelConfig]:
     """Return Whisper STT model configs."""
-    return [
+    configs = [
         ModelConfig(
             model_name="whisper-base",
             display_name="Whisper Base",
@@ -512,6 +513,9 @@ def _get_whisper_configs() -> list[ModelConfig]:
             model_size="turbo",
         ),
     ]
+    if os.environ.get("VOICEBOX_STT_URL"):
+        return [cfg for cfg in configs if cfg.model_size in {"small", "turbo"}]
+    return configs
 
 
 def _get_qwen_llm_configs() -> list[ModelConfig]:
@@ -725,6 +729,8 @@ def check_model_loaded(config: ModelConfig) -> bool:
 
     try:
         if config.engine == "whisper":
+            if os.environ.get("VOICEBOX_STT_URL"):
+                return config.model_size in {"small", "turbo"}
             whisper_model = transcribe.get_whisper_model()
             return whisper_model.is_loaded() and getattr(whisper_model, "model_size", None) == config.model_size
 
@@ -867,6 +873,11 @@ def get_stt_backend() -> STTBackend:
     global _stt_backend
 
     if _stt_backend is None:
+        if os.environ.get("VOICEBOX_STT_URL"):
+            from .daneel_stt_backend import DaneelSTTBackend
+
+            _stt_backend = DaneelSTTBackend()
+            return _stt_backend
         backend_type = get_backend_type()
 
         if backend_type == "mlx":

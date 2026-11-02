@@ -298,13 +298,13 @@ def _speak_response(
 async def _transcribe_file(
     path: Path, language: str | None, model: str | None
 ) -> dict[str, Any]:
-    from ..backends import WHISPER_HF_REPOS
+    from ..backends import get_stt_model_configs
     from ..services import transcribe as transcribe_service
     from ..utils.audio import load_audio
 
     whisper = transcribe_service.get_whisper_model()
     model_size = model or whisper.model_size
-    valid = list(WHISPER_HF_REPOS.keys())
+    valid = [cfg.model_size for cfg in get_stt_model_configs()]
     if model_size not in valid:
         raise ValueError(
             f"Invalid STT model '{model_size}'. Must be one of: {', '.join(valid)}"

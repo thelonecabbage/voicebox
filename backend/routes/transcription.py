@@ -38,7 +38,7 @@ async def transcribe_audio(
     stt_path = tmp_path
     try:
         from ..utils.audio import load_audio, save_audio
-        from ..backends import WHISPER_HF_REPOS
+        from ..backends import get_stt_model_configs
 
         audio, sr = await asyncio.to_thread(load_audio, tmp_path)
         duration = len(audio) / sr
@@ -57,7 +57,7 @@ async def transcribe_audio(
         whisper_model = transcribe.get_whisper_model()
         model_size = model if model else whisper_model.model_size
 
-        valid_sizes = list(WHISPER_HF_REPOS.keys())
+        valid_sizes = [cfg.model_size for cfg in get_stt_model_configs()]
         if model_size not in valid_sizes:
             raise HTTPException(
                 status_code=400,

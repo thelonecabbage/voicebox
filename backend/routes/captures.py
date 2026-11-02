@@ -1,6 +1,7 @@
 """Capture (voice input) endpoints."""
 
 import logging
+import os
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse
@@ -184,7 +185,7 @@ async def capture_readiness_endpoint(db: Session = Depends(get_db)):
 
     return models.CaptureReadinessResponse(
         stt=models.ModelReadiness(
-            ready=is_model_cached(stt_cfg.hf_repo_id),
+            ready=(stt_cfg.model_size in {"small", "turbo"}) if os.environ.get("VOICEBOX_STT_URL") else is_model_cached(stt_cfg.hf_repo_id),
             model_name=stt_cfg.model_name,
             display_name=stt_cfg.display_name,
             size=stt_cfg.model_size,

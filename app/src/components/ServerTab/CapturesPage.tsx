@@ -375,17 +375,8 @@ export function CapturesPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="base">
-                  {t('settings.captures.transcription.model.base', { tail: t('settings.captures.transcription.model.tail.fast') })}
-                </SelectItem>
                 <SelectItem value="small">
                   {t('settings.captures.transcription.model.small', { tail: t('settings.captures.transcription.model.tail.balanced') })}
-                </SelectItem>
-                <SelectItem value="medium">
-                  {t('settings.captures.transcription.model.medium', { tail: t('settings.captures.transcription.model.tail.higher') })}
-                </SelectItem>
-                <SelectItem value="large">
-                  {t('settings.captures.transcription.model.large', { tail: t('settings.captures.transcription.model.tail.best') })}
                 </SelectItem>
                 <SelectItem value="turbo">
                   {t('settings.captures.transcription.model.turbo', { tail: t('settings.captures.transcription.model.tail.nearBest') })}

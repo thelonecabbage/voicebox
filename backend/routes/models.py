@@ -1,6 +1,7 @@
 """Model management endpoints."""
 
 import asyncio
+import os
 import shutil
 from pathlib import Path
 
@@ -420,6 +421,11 @@ async def get_model_status():
 
             if is_downloading:
                 downloaded = False
+                size_mb = None
+
+            if os.environ.get("VOICEBOX_STT_URL") and config["model_name"] in {"whisper-small", "whisper-turbo"}:
+                downloaded = True
+                is_downloading = False
                 size_mb = None
 
             statuses.append(
